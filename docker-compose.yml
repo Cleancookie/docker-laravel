@@ -1,26 +1,42 @@
 version: '3'
 
 networks:
-  laravel:
+  nginx:
+   driver: bridge
 
 services:
-  site:
-    build:
-      context: .
-      dockerfile: nginx.dockerfile
+  nginx:
     container_name: nginx
+    restart: unless-stopped
+    tty: true
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./src:/var/www/html:delegated
-    depends_on:
-      - php
-      - mysql
+      - ./nginx:/etc/nginx
+      - ./ssl:/etc/ssl/sites
+      - ~/projects:/var/www/vhosts
+    build:
+      context: ./src
+      dockerfile: nginx.dockerfile
     networks:
-      - laravel
+      - nginx
+
+  laravel:
+    build:
+      context: ./src
+      dockerfile: php7.4.dockerfile
+    container_name: laravel
+    restart: unless-stopped
+    volumes:
+      - ~/projects:/var/www/vhosts
+    expose:
+      - "9000"
+    networks:
+      - nginx
 
   mysql:
-    image: mysql:5.7.29
+    image: mysql:5.7
     container_name: mysql
     restart: unless-stopped
     tty: true
@@ -34,16 +50,4 @@ services:
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     networks:
-      - laravel
-
-  php74:
-    build:
-      context: .
-      dockerfile: php74.dockerfile
-    container_name: php74
-    volumes:
-      - ./projects:/var/www:delegated
-    ports:
-      - "9000:9000"
-    networks:
-      - laravel
+      - nginx

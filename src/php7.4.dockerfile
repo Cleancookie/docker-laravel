@@ -1,6 +1,7 @@
-FROM php:7.4-fpm-alpine
+FROM php:7.3-fpm-alpine
 
 RUN apk update \
+    && apk add bash \
     && apk add imagemagick \
     && apk add libmcrypt \
     #Setup build environment. These should be removed after building
@@ -27,6 +28,6 @@ RUN apk update \
     && apk del libxml2-dev \
     && docker-php-source delete
 
-RUN mkdir -p /var/www/html
+RUN mkdir -p /var/www/vhosts
 
-WORKDIR /var/www/html
+WORKDIR /var/www/vhosts
