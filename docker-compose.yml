@@ -5,37 +5,7 @@ networks:
    driver: bridge
 
 services:
-  nginx:
-    container_name: nginx
-    restart: unless-stopped
-    tty: true
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx:/etc/nginx
-      - ./ssl:/etc/ssl/sites
-      - ~/projects:/var/www/vhosts
-    build:
-      context: ./src
-      dockerfile: nginx.dockerfile
-    networks:
-      - nginx
-
-  laravel:
-    build:
-      context: ./src
-      dockerfile: php7.4.dockerfile
-    container_name: laravel
-    restart: unless-stopped
-    volumes:
-      - ~/projects:/var/www/vhosts
-    expose:
-      - "9000"
-    networks:
-      - nginx
-
-  mysql:
+  db:
     image: mysql:5.7
     container_name: mysql
     restart: unless-stopped
@@ -43,11 +13,38 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: homestead
-      MYSQL_USER: homestead
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: cookie
+      MYSQL_USER: cookie
+      MYSQL_PASSWORD: donut
+      MYSQL_ROOT_PASSWORD: donut
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
-    networks:
-      - nginx
+
+  laravel:
+    tty: true
+    image: docker.io/bitnami/laravel:7-debian-10
+    environment:
+      - DB_HOST=mysql
+      - DB_USERNAME=cookie
+      - DB_DATABASE=cookie
+      - DB_PASSWORD=donut
+    depends_on:
+      - mysql
+    ports:
+      - 8080:3000
+    volumes:
+      - ./app:/app
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports: 
+      - "8090:80"
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: cookie
+      PMA_PASSWORD: donut
+      UPLOAD_LIMIT: 2G  
