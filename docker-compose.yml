@@ -1,9 +1,5 @@
 version: '3'
 
-networks:
-  nginx:
-   driver: bridge
-
 services:
   db:
     image: mysql:5.7
