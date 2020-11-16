@@ -1,6 +1,8 @@
 version: '3'
 
 services:
+
+  ### Services
   db:
     image: mysql:5.7
     container_name: mysql
@@ -16,21 +18,14 @@ services:
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
 
-  laravel:
-    tty: true
-    image: docker.io/bitnami/laravel:7-debian-10
-    environment:
-      - DB_HOST=mysql
-      - DB_USERNAME=cookie
-      - DB_DATABASE=cookie
-      - DB_PASSWORD=donut
-    depends_on:
-      - db
+  nginx:
+    image: jwilder/nginx-proxy
     ports:
-      - 8080:3000
+      - "80:80"
     volumes:
-      - ./app:/app
+      - /var/run/docker.sock:/tmp/docker.sock:ro
 
+  ### Tools
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     restart: always
@@ -43,4 +38,22 @@ services:
       PMA_PORT: 3306
       PMA_USER: cookie
       PMA_PASSWORD: donut
-      UPLOAD_LIMIT: 2G  
+      UPLOAD_LIMIT: 2G
+      VIRTUAL_HOST: phpmyadmin.test
+
+  ### Sites
+  laravel:
+    tty: true
+    image: docker.io/bitnami/laravel:7-debian-10
+    environment:
+      DB_HOST: mysql
+      DB_USERNAME: cookie
+      DB_DATABASE: cookie
+      DB_PASSWORD: donut
+      VIRTUAL_HOST: laravel.test
+    depends_on:
+      - db
+    expose:
+      - 3000
+    volumes:
+      - ./app:/app
