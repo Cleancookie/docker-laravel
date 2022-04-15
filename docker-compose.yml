@@ -2,7 +2,7 @@ version: '3'
 
 services:
 
-  ### Servicses
+  ### Services
   db:
     image: mysql:5.7
     container_name: mysql
@@ -19,7 +19,7 @@ services:
       SERVICE_NAME: mysql
 
   nginx:
-    image: jwilder/nginx-proxy
+    image: jwilder/nginx-proxy:alpine
     ports:
       - "80:80"
     volumes:
@@ -44,7 +44,9 @@ services:
   ### Sites
   laravel:
     tty: true
-    image: docker.io/bitnami/laravel:7-debian-10
+    build:
+      context: ./docker
+      dockerfile: php.dockerfile
     environment:
       DB_HOST: mysql
       DB_USERNAME: cookie
@@ -54,6 +56,6 @@ services:
     depends_on:
       - db
     expose:
-      - 3000
+      - 80
     volumes:
-      - ./app:/app
+      - ./app:/var/www/html
