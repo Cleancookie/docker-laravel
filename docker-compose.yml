@@ -11,26 +11,24 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: cookie
+      MYSQL_DATABASE: laravel
       MYSQL_USER: cookie
       MYSQL_PASSWORD: donut
       MYSQL_ROOT_PASSWORD: donut
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
 
   nginx:
-    image: jwilder/nginx-proxy:alpine
+    image: nginx:latest
     ports:
       - "80:80"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./docker/nginx/etc/nginx/conf.d/laravel.test.conf:/etc/nginx/conf.d/laravel.test.conf
 
   ### Tools
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     restart: always
     ports: 
-      - "8090:80"
+      - "3305:80"
     depends_on:
       - db
     environment:
@@ -39,23 +37,25 @@ services:
       PMA_USER: cookie
       PMA_PASSWORD: donut
       UPLOAD_LIMIT: 2G
-      VIRTUAL_HOST: phpmyadmin.test
 
   ### Sites
   laravel:
     tty: true
     build:
-      context: ./docker
-      dockerfile: php.dockerfile
+      args:
+        user: 1000
+        uid: 1000
+      context: ./docker/php
+      dockerfile: Dockerfile
+    user: "${UID_GID}" # Remember to set this when doc up'ing: `UID_GID="$(id -u):$(id -g)" docker-compose up -d`
     environment:
       DB_HOST: mysql
-      DB_USERNAME: cookie
+      DB_USERNAME: root
       DB_DATABASE: cookie
       DB_PASSWORD: donut
-      VIRTUAL_HOST: laravel.test
     depends_on:
       - db
     expose:
-      - 80
+      - 9000
     volumes:
       - ./app:/var/www/html
