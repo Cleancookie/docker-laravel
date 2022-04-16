@@ -13,13 +13,15 @@ RUN apt update && apt install -y \
     libxml2-dev \
     zip \
     unzip \
-    vim
-
-# Clear cache
-RUN apt clean && rm -rf /var/lib/apt/lists/*
+    vim \
+    nodejs \
+    npm
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Set default shell just so its a bit prettier
+SHELL ["/bin/bash", "-c"]
 
 # Get latest Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

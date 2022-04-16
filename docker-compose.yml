@@ -1,7 +1,6 @@
 version: '3'
 
 services:
-
   ### Services
   db:
     image: mysql:5.7
@@ -21,13 +20,13 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./docker/nginx/etc/nginx/conf.d/laravel.test.conf:/etc/nginx/conf.d/laravel.test.conf
+      - ./docker/nginx/etc/nginx/conf.d/:/etc/nginx/conf.d/
 
   ### Tools
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     restart: always
-    ports: 
+    ports:
       - "3305:80"
     depends_on:
       - db
@@ -40,22 +39,19 @@ services:
 
   ### Sites
   laravel:
+    env_file:
+      - ./.env
     tty: true
     build:
       args:
-        user: 1000
-        uid: 1000
+        user: "${UID}"
+        uid: "${UID}"
       context: ./docker/php
       dockerfile: Dockerfile
-    user: "${UID_GID}" # Remember to set this when doc up'ing: `UID_GID="$(id -u):$(id -g)" docker-compose up -d`
-    environment:
-      DB_HOST: mysql
-      DB_USERNAME: root
-      DB_DATABASE: cookie
-      DB_PASSWORD: donut
+    user: "${UID}:${GID}"
     depends_on:
       - db
     expose:
       - 9000
     volumes:
-      - ./app:/var/www/html
+      - ./:/var/www/html
